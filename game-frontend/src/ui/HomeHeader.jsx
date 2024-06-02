@@ -4,9 +4,9 @@ import { HiWallet } from "react-icons/hi2"
 import Logo from "./Logo"
 import Button from "./Button"
 import HeaderMenu from "./HeaderMenu"
-import { useConnectAccount } from "../hooks/useConnectAccount"
 import { useWeb3 } from "../context/Web3Provider"
-import { useEffect } from "react"
+
+import { useListeningAccount } from "../hooks/useListeningAccount"
 
 const StyledHeader = styled.header`
 	padding: 1.22rem 4.8rem;
@@ -24,28 +24,9 @@ const IconTextWrapper = styled.div`
 `
 
 export default function HomeHeader() {
-	const { provider, isConnected, setIsConnected } = useConnectAccount()
-	const { account, setAccount } = useWeb3()
-	console.log(account.currentAccount)
+	const { isConnected, account } = useWeb3()
 
-	useEffect(() => {
-		window.ethereum.on("accountsChanged", handleAccountChanged)
-		function handleAccountChanged(accounts) {
-			setAccount({ account: accounts, currentAccount: accounts[0] })
-		}
-	}, [setAccount, provider, account])
-
-	function handleConnect() {
-		if (isConnected) return
-		if (!window.ethereum) {
-			alert("Please install MetaMask first.")
-			return
-		}
-		provider.send("eth_requestAccounts", []).then((accounts) => {
-			setIsConnected(true)
-			setAccount({ account: accounts, currentAccount: accounts[0] })
-		})
-	}
+	const { handleConnect } = useListeningAccount()
 
 	return (
 		<StyledHeader>

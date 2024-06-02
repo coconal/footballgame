@@ -55,5 +55,11 @@ const GlobalStyles = createGlobalStyle`
   --border-radius-md: 7px;
   --border-radius-lg: 9px;
 }
+
+body, html {
+    margin: 0;
+    padding: 0;
+  }
+
 `
 export default GlobalStyles

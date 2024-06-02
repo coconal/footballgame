@@ -1,10 +1,15 @@
 import HomeHeader from "./HomeHeader"
 import styled from "styled-components"
-import backgroundImage from "../assets/landingBg2.png"
 import title from "../assets/title.png"
 import Image from "./Image"
 import Button from "./Button"
+
+import Spinner from "./Spinner"
+import { useWeb3 } from "../context/Web3Provider"
+import useGetJoinStatus from "../features/home/useGetJoinStatus"
+
 import { useNavigate } from "react-router-dom"
+import { useSignUp } from "../features/home/useSignUp"
 
 const StyledAppLayout = styled.div`
 	padding: 0.8rem 0;
@@ -33,24 +38,31 @@ const ImageContainer = styled.div`
 	margin-top: 1rem;
 `
 
-const BackgroundImageContainer = styled.div`
-	background-image: url(${backgroundImage});
-	background-repeat: no-repeat;
-	background-size: cover;
-	background-position: center;
-	height: 100vh; // 设置高度为全屏
-	width: 100vw; // 设置宽度为全屏
-`
-
 export default function HomeLayOut() {
+	const { isConnected, account, Contract } = useWeb3()
+	const { isLoading: isLoadingJoin, joinStatus } = useGetJoinStatus({ account })
+	const { isLoading: isLoadingSignUp, signUp } = useSignUp({ Contract })
 	const navagate = useNavigate()
-
+	if (isConnected) {
+		if (isLoadingJoin || isLoadingSignUp) {
+			return <Spinner />
+		}
+	}
 	function handleJoin() {
-		navagate("/game")
+		if (!isConnected) {
+			return
+		}
+		if (isConnected && !joinStatus) {
+			const receipt = signUp()
+			console.log(receipt)
+		}
+		if (joinStatus && isConnected) {
+			navagate("/game")
+		}
 	}
 
 	return (
-		<BackgroundImageContainer>
+		<>
 			<StyledAppLayout>
 				<HomeHeader />
 			</StyledAppLayout>
@@ -60,11 +72,18 @@ export default function HomeLayOut() {
 				</ImageContainer>
 
 				<CenteredContainer>
-					<Button variation="joinBt" size="medium" onClick={handleJoin}>
-						Join Now
+					<Button
+						variation="joinBt"
+						size="medium"
+						onClick={handleJoin}
+						disabled={!isConnected && !joinStatus}
+					>
+						{isConnected && joinStatus && "Play"}
+						{isConnected && !joinStatus && "Join"}
+						{!isConnected && !joinStatus && "Please Connect Wallet"}
 					</Button>
 				</CenteredContainer>
 			</Container>
-		</BackgroundImageContainer>
+		</>
 	)
 }

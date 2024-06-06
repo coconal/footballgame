@@ -18,15 +18,24 @@ const Image = styled.img`
 	}
 `
 
-export default function Card({ card }) {
+export default function Card({ card, isbuy, isgk = "false", iskeeper = "false" }) {
 	return (
 		<StyledDiv>
 			<Modal>
 				<Modal.Open opens={`${Number(card[0])}`}>
-					<Image src={`/images/players/${Number(card[0])}.png`} key={card[0]} />
+					<Image
+						src={`/images/${isgk === "true" ? "keepers" : "players"}/${Number(card[0])}.png`}
+						key={card[0]}
+						iskeeper={iskeeper}
+					/>
 				</Modal.Open>
 				<Modal.Window name={`${Number(card[0])}`}>
-					<MiniCard card={card} src={`/images/players/${Number(card[0])}.png`} />
+					<MiniCard
+						card={card}
+						src={`/images/${isgk === "true" ? "keepers" : "players"}/${Number(card[0])}.png`}
+						isbuy={isbuy}
+						iskeeper={iskeeper}
+					/>
 				</Modal.Window>
 			</Modal>
 		</StyledDiv>

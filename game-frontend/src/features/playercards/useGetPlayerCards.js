@@ -2,8 +2,8 @@ import { useQuery } from "@tanstack/react-query"
 import { getPlayerActiveCards } from "../../services/abiRead.js"
 
 export function useGetPlayerCards({ account }) {
-	const { isLoading, data: playerCards } = useQuery({
-		queryKey: ["playerCards"],
+	const { isPending: isLoading, data: playerCards } = useQuery({
+		queryKey: ["playerCards", account.currentAccount],
 		queryFn: () => getPlayerActiveCards(account),
 	})
 

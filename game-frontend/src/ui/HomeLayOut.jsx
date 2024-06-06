@@ -1,3 +1,5 @@
+import { useNavigate } from "react-router-dom"
+
 import HomeHeader from "./HomeHeader"
 import styled from "styled-components"
 import title from "../assets/title.png"
@@ -6,10 +8,11 @@ import Button from "./Button"
 
 import Spinner from "./Spinner"
 import { useWeb3 } from "../context/Web3Provider"
-import useGetJoinStatus from "../features/home/useGetJoinStatus"
-
-import { useNavigate } from "react-router-dom"
+import { useGetJoinStatus } from "../features/home/useGetJoinStatus"
 import { useSignUp } from "../features/home/useSignUp"
+import { useGetPoints } from "../features/home/useGetPoints"
+import { useEffect } from "react"
+import { ethers } from "ethers"
 
 const StyledAppLayout = styled.div`
 	padding: 0.8rem 0;
@@ -39,12 +42,56 @@ const ImageContainer = styled.div`
 `
 
 export default function HomeLayOut() {
-	const { isConnected, account, Contract } = useWeb3()
+	const {
+		isConnected,
+		account,
+		setIsConnected,
+		setAccount,
+		setContract,
+		getContract,
+		Contract,
+		checkConnection,
+	} = useWeb3()
 	const { isLoading: isLoadingJoin, joinStatus } = useGetJoinStatus({ account })
 	const { isLoading: isLoadingSignUp, signUp } = useSignUp({ Contract })
+	const { isLoading: isLoadingPoints, playerpoints } = useGetPoints({ account })
+	// console.log(Contract)
+
 	const navagate = useNavigate()
+	useEffect(() => {
+		const connectedAccount = localStorage.getItem("connectedAccount")
+		const newaccounts = connectedAccount ? connectedAccount.split(",") : []
+		if (account.currentAccount === newaccounts[0]) {
+			return
+		}
+		setIsConnected(true)
+		setAccount({ account: newaccounts, currentAccount: newaccounts[0] })
+		getContract().then((contract) => setContract(contract))
+	}, [])
+
+	useEffect(() => {
+		if (!window.ethereum) {
+			alert("Please install MetaMask first.")
+			return
+		}
+
+		window.ethereum.on("accountsChanged", handleAccountChanged)
+		function handleAccountChanged(accounts) {
+			console.log(accounts)
+			if (!accounts) {
+				setIsConnected(false)
+				return
+			} else {
+				setAccount({ account: accounts, currentAccount: accounts[0] })
+				setIsConnected(true)
+				localStorage.setItem("connectedAccount", [accounts])
+			}
+			getContract().then((contract) => setContract(contract))
+		}
+	}, [setAccount, getContract, setIsConnected, setContract, checkConnection])
+
 	if (isConnected) {
-		if (isLoadingJoin || isLoadingSignUp) {
+		if (isLoadingJoin || isLoadingSignUp || isLoadingPoints) {
 			return <Spinner />
 		}
 	}
@@ -61,10 +108,33 @@ export default function HomeLayOut() {
 		}
 	}
 
+	function handleConnect() {
+		if (isConnected) return
+		if (!window.ethereum) {
+			alert("Please install MetaMask first.")
+			return
+		}
+		const provider = new ethers.BrowserProvider(window.ethereum)
+		provider
+			.send("eth_requestAccounts", [])
+
+			.then((accounts) => {
+				setIsConnected(true)
+				setAccount({ account: accounts, currentAccount: accounts[0] })
+				getContract().then((contract) => setContract(contract))
+				localStorage.setItem("connectedAccount", [accounts])
+			})
+	}
+
 	return (
 		<>
 			<StyledAppLayout>
-				<HomeHeader />
+				<HomeHeader
+					playerpoints={Number(playerpoints)}
+					handleConnect={handleConnect}
+					isConnected={isConnected}
+					account={account}
+				/>
 			</StyledAppLayout>
 			<Container>
 				<ImageContainer>
@@ -80,7 +150,7 @@ export default function HomeLayOut() {
 					>
 						{isConnected && joinStatus && "Play"}
 						{isConnected && !joinStatus && "Join"}
-						{!isConnected && !joinStatus && "Please Connect Wallet"}
+						{!isConnected && "Please Connect Wallet"}
 					</Button>
 				</CenteredContainer>
 			</Container>

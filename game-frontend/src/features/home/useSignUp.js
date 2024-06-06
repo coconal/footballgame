@@ -9,7 +9,9 @@ export function useSignUp({ Contract }) {
 		mutationFn: () => abiSignup(Contract),
 		onSuccess: () => {
 			toast.success("Sign up successful")
-			queryClient.invalidateQueries("signup")
+			queryClient.invalidateQueries({
+				queryKey: ["signup"],
+			})
 		},
 		onError: () => {
 			toast.error("Sign up failed")

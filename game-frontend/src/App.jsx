@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom"
+import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom"
 
 import Home from "./pages/Home"
 import MarketPlace from "./pages/MarketPlace"
@@ -9,6 +9,7 @@ import GlobalStyles from "./styles/GlobalStyles"
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { Toaster } from "react-hot-toast"
+import ProtectedRoute from "./pages/ProtectedRoute"
 
 function App() {
 	const queryClient = new QueryClient()
@@ -19,9 +20,32 @@ function App() {
 			<BrowserRouter>
 				<Routes>
 					<Route path="/" element={<Home />} />
-					<Route path="/MarketPlace" element={<MarketPlace />} />
-					<Route path="game" element={<Testing />} />
-					<Route path="Carts" element={<PlayerCards />} />
+
+					<Route
+						path="/MarketPlace"
+						element={
+							<ProtectedRoute>
+								<MarketPlace />
+							</ProtectedRoute>
+						}
+					/>
+					<Route
+						path="/game"
+						element={
+							<ProtectedRoute>
+								<Testing />
+							</ProtectedRoute>
+						}
+					/>
+					<Route
+						path="/Carts"
+						element={
+							<ProtectedRoute>
+								<PlayerCards />
+							</ProtectedRoute>
+						}
+					/>
+
 					<Route path="*" element={<PageNotFound />} />
 				</Routes>
 			</BrowserRouter>

@@ -4,9 +4,8 @@ import { HiWallet } from "react-icons/hi2"
 import Logo from "./Logo"
 import Button from "./Button"
 import HeaderMenu from "./HeaderMenu"
+import { useEffect } from "react"
 import { useWeb3 } from "../context/Web3Provider"
-
-import { useListeningAccount } from "../hooks/useListeningAccount"
 
 const StyledHeader = styled.header`
 	padding: 1.22rem 4.8rem;
@@ -23,15 +22,19 @@ const IconTextWrapper = styled.div`
 	padding: 20px;
 `
 
-export default function HomeHeader() {
-	const { isConnected, account } = useWeb3()
+export default function HomeHeader({ playerpoints, handleConnect, isConnected, account }) {
+	const { checkConnection, setIsConnected } = useWeb3()
 
-	const { handleConnect } = useListeningAccount()
-
+	useEffect(() => {
+		checkConnection().then((res) => {
+			setIsConnected(res)
+		})
+	}, [checkConnection, setIsConnected])
+	// console.log(isConnected)
 	return (
 		<StyledHeader>
 			<Logo />
-			<HeaderMenu />
+			<HeaderMenu playerpoints={playerpoints} />
 			<IconTextWrapper>
 				<Button
 					variation={isConnected ? "connedbt" : "connbt"}
@@ -39,7 +42,7 @@ export default function HomeHeader() {
 					onClick={handleConnect}
 				>
 					<HiWallet />
-					{isConnected ? `${account.currentAccount.slice(0, 6)}...` : "Connect Wallet"}
+					{isConnected ? `${account?.currentAccount?.slice(0, 6)}...` : "Connect Wallet"}
 				</Button>
 			</IconTextWrapper>
 		</StyledHeader>

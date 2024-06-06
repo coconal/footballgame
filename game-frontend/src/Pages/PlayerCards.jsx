@@ -1,7 +1,6 @@
 import CardLayOut from "../ui/CardLayOut"
 import styled from "styled-components"
 import backgroundImage from "../assets/pg.png"
-import { useEffect } from "react"
 
 const BackgroundImageContainer = styled.div`
 	background-image: url(${backgroundImage});

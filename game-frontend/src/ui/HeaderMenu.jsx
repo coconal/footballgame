@@ -30,7 +30,7 @@ const IconTextWrapper = styled.div`
 	gap: 0.5rem; // 设置图标和文本之间的间距
 `
 
-export default function HeaderMenu() {
+export default function HeaderMenu({ playerpoints }) {
 	const navigate = useNavigate()
 
 	return (
@@ -55,7 +55,7 @@ export default function HeaderMenu() {
 				<ButtonIcon>
 					<IconTextWrapper>
 						<HiCircleStack color="red" />
-						<FontStyled>X Points</FontStyled>
+						<FontStyled>{playerpoints ? playerpoints : "0"} Points</FontStyled>
 					</IconTextWrapper>
 				</ButtonIcon>
 			</li>

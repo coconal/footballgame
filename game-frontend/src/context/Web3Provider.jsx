@@ -11,9 +11,10 @@ function Web3Provider({ children }) {
 		currentAccount: null,
 	})
 	const [Contract, setContract] = useState("")
-
+	//problem
 	const getContract = useCallback(async () => {
 		const provider = new ethers.BrowserProvider(window.ethereum)
+
 		const contractAddress = "0x3530162dc74d89a6d98Fe40f89280FB68CCF4822"
 		const signer = await provider.getSigner()
 		const contract = new ethers.Contract(contractAddress, abi, signer)
@@ -21,6 +22,20 @@ function Web3Provider({ children }) {
 		return contract
 	}, [])
 
+	const checkConnection = useCallback(async () => {
+		if (!window.ethereum) {
+			alert("Please install MetaMask first.")
+			return
+		}
+		const accounts = await window.ethereum.request({ method: "eth_accounts" })
+		// console.log(accounts)
+		if (accounts.length === 0) {
+			return false
+		} else {
+			return true
+		}
+	}, [])
+	// console.log(Contract)
 	return (
 		<web3Countext.Provider
 			value={{
@@ -31,6 +46,7 @@ function Web3Provider({ children }) {
 				setIsConnected,
 				account,
 				setAccount,
+				checkConnection,
 			}}
 		>
 			{children}

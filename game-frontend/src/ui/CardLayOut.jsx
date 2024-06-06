@@ -8,6 +8,7 @@ import { useEffect } from "react"
 import { useGetInactiveCards } from "../features/playercards/useGetInactiveCards"
 import Card from "./Card"
 import { useNavigate } from "react-router-dom"
+import { useGetPlayerActiveGKCard } from "../features/playercards/useGetPlayerActiveGKCard"
 
 const Container = styled.div`
 	margin-top: -150px;
@@ -66,8 +67,19 @@ const BackButton = styled.button`
 `
 
 export default function CardLayOut() {
-	const { setIsConnected, setAccount, getContract, setContract } = useWeb3()
+	const { setIsConnected, setAccount, getContract, setContract, account } = useWeb3()
 	const navigate = useNavigate()
+	// console.log(account.currentAccount)
+	useEffect(() => {
+		const connectedAccount = localStorage.getItem("connectedAccount")
+		const newaccounts = connectedAccount ? connectedAccount.split(",") : []
+		if (account.currentAccount === newaccounts[0]) {
+			return
+		}
+		setIsConnected(true)
+		setAccount({ account: newaccounts, currentAccount: newaccounts[0] })
+		getContract().then((contract) => setContract(contract))
+	}, [])
 
 	useEffect(() => {
 		if (!window.ethereum) {
@@ -76,22 +88,26 @@ export default function CardLayOut() {
 		}
 		window.ethereum.on("accountsChanged", handleAccountChanged)
 		function handleAccountChanged(accounts) {
-			// setAccount({ account: accounts, currentAccount: accounts[0] })
-			localStorage.setItem("connectedAccount", [accounts])
+			// console.log(accounts)
+			if (!accounts) {
+				setIsConnected(false)
+				return
+			} else {
+				setAccount({ account: accounts, currentAccount: accounts[0] })
+				setIsConnected(true)
+				localStorage.setItem("connectedAccount", [accounts])
+			}
+			getContract().then((contract) => setContract(contract))
 		}
-		const connectedAccount = localStorage.getItem("connectedAccount")
-		const account = connectedAccount ? connectedAccount.split(",") : []
-		setAccount({ accounts: account, currentAccount: account[0] })
-		setIsConnected(true)
-		getContract().then((contract) => setContract(contract))
 	}, [setAccount, getContract, setIsConnected, setContract])
-	const { account } = useWeb3()
-	const { isLoading1, playerCards } = useGetPlayerCards({ account })
-	const { isLoading2, inactiveCards } = useGetInactiveCards({ account })
+	const { isLoading: isLoading1, playerCards } = useGetPlayerCards({ account })
+	const { isLoading: isLoading2, inactiveCards } = useGetInactiveCards({ account })
+	const { isLoading: isLoading3, playerActiveGKCard } = useGetPlayerActiveGKCard({ account })
 
-	if (isLoading1 || isLoading2) return <Spinner />
-
+	if (isLoading1 || isLoading2 || isLoading3) return <Spinner />
 	const playerCardsArray = playerCards ? Object.values(playerCards) : []
+	const playerGKCardArray = playerActiveGKCard ? Object.values(playerActiveGKCard) : []
+	console.log(playerGKCardArray)
 	const inactiveCardsArray = inactiveCards ? Object.values(inactiveCards) : []
 	if (playerCardsArray.length === 0 && inactiveCardsArray === 0) return <Spinner />
 	//[id, level]
@@ -108,14 +124,17 @@ export default function CardLayOut() {
 			<SubTitle>Playing VI</SubTitle>
 			<GridContainer>
 				{playerCardsArray.map((card) => (
-					<Card key={card[0]} card={card} />
+					<Card key={`player${card[0]}`} card={card} />
 				))}
+				{/* {playerGKCardArray.map((card) => (
+					<Card key={`keeper${card[0]}`} card={card} isgk={true} iskeeper={true} />
+				))} */}
 			</GridContainer>
 
 			<SubTitle>Inactive Cards</SubTitle>
 			<GridContainer>
 				{inactiveCardsArray.map((card) => (
-					<Card key={card[0]} card={card} />
+					<Card key={`inactive${card[0]}`} card={card} />
 				))}
 			</GridContainer>
 		</Container>
